@@ -1,0 +1,46 @@
+@baseUrl = http://localhost:8000/api
+
+@token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIwMWExMGQ0ZS01Njc0LTcxOGItYjk0Ny1mNmFjNzA5NWYzNmQiLCJqdGkiOiI3ZWQ2YjQyYTQ2ZjY5ZDNkZjYxMTU0OGZlM2EzZjk0NWVmNjA1OTRkMjkyOTY1MTBiMDI3YWI2NzYwZjRhOWJmMTE5MTFmNGY0MjNhZGYwYyIsImlhdCI6MTc5MTMxMzM0My45MDg4NTYsIm5iZiI6MTc5MTMxMzM0My45MDg4NTksImV4cCI6MTc5MTMxNTE0My44ODUyNjMsInN1YiI6IjEwIiwic2NvcGVzIjpbXX0.dMhDKyxJmhx-FYjzGIs-ZEdd9o020mOFIxeH1WU4XkNOrTKiknrD0eLVcbXurY1q9O1zLC8H8MTaJF3opr5pUeoWDTbnp1vqi9kjPOmja7iYd2e-SMc7Qy8eA3y2Stqu389EVSNPIlpLPPbuzjJA9kPL36UM6_E1QwencALUdoc07zDLkI0Hk3YmGxRW4GdXnYr5yALcHtM0_G6_5btik6xL5Cf2SGLed2SpkA3f2lU0SSNOqTDkMtgF13SrfyMPkg6XBxxuCA-ptYKlrrrNNiqmnUISaedEGz3keigCrUlQorYW6ZrpD4VkfSfb9M5jlhnR6rkbRHd_Jm3_up0lNI4Axr_ggWNKRcqkdvOfHSloZr9REH3yXZvlfwaTXAuOkYQC-QI6UgwVj23L1csyCflJRnsg-nybpAlwc5fSJpBSY4bt8ZZMvzCjw5-MAqczgqbNoWmMYAMk36VA3gR8y90loZcfFCETvfozqQ_hwCpr7nn-ANtiCVZONP0nXmIm8-oDd9Ho1IFhetKxxlcBfizb0wgkwxUIA5gPZntjid2t2XlxwwzKBShEp2J7JaeFsDMSZ5UrLbIHHEik2zxTcQPzGoBE8NqPJtxG5xPGFVJhDx8xylCrY4cXB1y2O7UBA1m1XSLVBGXR5IuLKqFdi5v6s9pvtHoHbiCzjomTFPI
+### 1. Login
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+    "email": "test@test.com",
+    "password": "1234"
+}
+
+
+### 2. Intentar crear usuario SIN token
+POST {{baseUrl}}/usr
+Content-Type: application/json
+
+{
+    "name": "Pedro",
+    "email": "pedro@example.com",
+    "password": "12345678"
+}
+
+
+### 3. Crear usuario CON token
+#POST {{baseUrl}}/usr
+POST http://localhost:8000/api/usr
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "name": "Pablo",
+    "email": "pablot@example.com",
+    "password": "12345678"
+}
+
+### 4. Listar todos los usuarios
+GET http://localhost:8000/api/usr
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+
+### 4. Listar todos los usuarios
+GET {{baseUrl}}/test-protected
+Content-Type: application/json
+Authorization: Bearer {{token}}
