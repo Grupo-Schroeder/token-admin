@@ -27,6 +27,15 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/tokens', [DashboardController::class, 'storeToken'])
         ->name('tokens.store');
+
+    Route::get('/users/create', [DashboardController::class, 'createUser'])
+    ->name('users.create');
+
+    Route::post('/users', [DashboardController::class, 'storeUser'])
+        ->name('users.store');
+
+    Route::get('/users/{id}', [DashboardController::class, 'showUser'])
+    ->name('users.show');
 });
 
 

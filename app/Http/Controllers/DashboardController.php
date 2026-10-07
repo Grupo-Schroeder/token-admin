@@ -6,83 +6,199 @@ use App\Models\User;
 use App\Models\TokenType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class DashboardController extends Controller
 {
     public function index(Request $request){
-        $status = $request->query('status', 'all');
-        $email = trim((string) $request->query('email', ''));
-        $name = trim((string) $request->query('name', ''));
-        $createdFrom = trim((string) $request->query('created_from', ''));
-        $expiresFrom = trim((string) $request->query('expires_from', ''));
+    $tab = $request->query('tab', 'tokens');
 
-        $query = DB::table('oauth_access_tokens')
-            ->join('users', 'users.id', '=', 'oauth_access_tokens.user_id')
-            ->leftJoin(
-                'token_types',
-                'token_types.id',
-                '=',
-                'oauth_access_tokens.token_type_id'
-            )
-            ->select([
-                'oauth_access_tokens.id',
-                'oauth_access_tokens.user_id',
-                'users.email',
-                'oauth_access_tokens.name',
-                'token_types.name as token_type_name',
-                'oauth_access_tokens.expires_in',
-                'oauth_access_tokens.created_at',
+    /*
+    |--------------------------------------------------------------------------
+    | TOKENS
+    |--------------------------------------------------------------------------
+    */
+
+    $status = $request->query('status', 'all');
+    $email = trim((string) $request->query('email', ''));
+    $name = trim((string) $request->query('name', ''));
+    $createdFrom = trim((string) $request->query('created_from', ''));
+    $expiresFrom = trim((string) $request->query('expires_from', ''));
+
+    $query = DB::table('oauth_access_tokens')
+        ->join(
+            'users',
+            'users.id',
+            '=',
+            'oauth_access_tokens.user_id'
+        )
+        ->leftJoin(
+            'token_types',
+            'token_types.id',
+            '=',
+            'oauth_access_tokens.token_type_id'
+        )
+        ->select([
+            'oauth_access_tokens.id',
+            'oauth_access_tokens.user_id',
+            'users.email',
+            'oauth_access_tokens.name',
+            'token_types.name as token_type_name',
+            'oauth_access_tokens.expires_in',
+            'oauth_access_tokens.created_at',
+            'oauth_access_tokens.expires_at',
+            'oauth_access_tokens.revoked',
+        ])
+        ->orderBy(
+            'oauth_access_tokens.created_at',
+            'desc'
+        );
+
+    match ($status) {
+
+        'revoked' => $query
+            ->where('oauth_access_tokens.revoked', 1),
+
+        'expired' => $query
+            ->where('oauth_access_tokens.revoked', 0)
+            ->where(
                 'oauth_access_tokens.expires_at',
-                'oauth_access_tokens.revoked',
-            ])
-            ->orderBy('oauth_access_tokens.created_at', 'desc');
+                '<',
+                now()
+            ),
 
-        match ($status) {
-            'revoked' => $query->where('oauth_access_tokens.revoked', 1),
-            'expired' => $query
-                ->where('oauth_access_tokens.revoked', 0)
-                ->where('oauth_access_tokens.expires_at', '<', now()),
-            'active' => $query
-                ->where('oauth_access_tokens.revoked', 0)
-                ->where('oauth_access_tokens.expires_at', '>=', now()),
-            default => null,
-        };
+        'active' => $query
+            ->where('oauth_access_tokens.revoked', 0)
+            ->where(
+                'oauth_access_tokens.expires_at',
+                '>=',
+                now()
+            ),
 
-        if ($email !== '') {
-            $query->where('users.email', 'like', "%{$email}%");
-        }
+        default => null,
+    };
 
-        if ($name !== '') {
-            $query->where('oauth_access_tokens.name', 'like', "%{$name}%");
-        }
-
-        if ($createdFrom !== '' && strtotime($createdFrom) !== false) {
-            $query->where('oauth_access_tokens.created_at', '>=', $createdFrom);
-        }
-
-        if ($expiresFrom !== '' && strtotime($expiresFrom) !== false) {
-            $query->where('oauth_access_tokens.expires_at', '>=', $expiresFrom);
-        }
-
-        $data = $query->paginate(10)->withQueryString();
-
-        $total = $data->total();
-
-        $users = User::orderBy('name')->get();
-        $tokenTypes = TokenType::orderBy('name')->get();
-
-        return view('dashboard.view', [
-            'data' => $data,
-            'total' => $total,
-            'status' => $status,
-            'email' => $email,
-            'name' => $name,
-            'createdFrom' => $createdFrom,
-            'expiresFrom' => $expiresFrom,
-            'users' => $users,
-            'tokenTypes' => $tokenTypes,
-        ]);
+    if ($email !== '') {
+        $query->where(
+            'users.email',
+            'like',
+            "%{$email}%"
+        );
     }
+
+    if ($name !== '') {
+        $query->where(
+            'oauth_access_tokens.name',
+            'like',
+            "%{$name}%"
+        );
+    }
+
+    if (
+        $createdFrom !== '' &&
+        strtotime($createdFrom) !== false
+    ) {
+        $query->where(
+            'oauth_access_tokens.created_at',
+            '>=',
+            $createdFrom
+        );
+    }
+
+    if (
+        $expiresFrom !== '' &&
+        strtotime($expiresFrom) !== false
+    ) {
+        $query->where(
+            'oauth_access_tokens.expires_at',
+            '>=',
+            $expiresFrom
+        );
+    }
+
+    $data = $query
+        ->paginate(10)
+        ->withQueryString();
+
+    $total = $data->total();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | USUARIOS
+    |--------------------------------------------------------------------------
+    */
+
+    $userSearch = trim(
+        (string) $request->query('user_search', '')
+    );
+
+    $users = User::query()
+        ->when(
+            $userSearch !== '',
+            function ($query) use ($userSearch) {
+
+                $query->where(function ($query) use ($userSearch) {
+
+                    $query
+                        ->where(
+                            'name',
+                            'like',
+                            "%{$userSearch}%"
+                        )
+                        ->orWhere(
+                            'email',
+                            'like',
+                            "%{$userSearch}%"
+                        );
+
+                });
+
+            }
+        )
+        ->withCount('tokens')
+        ->orderBy('name')
+        ->paginate(10)
+        ->withQueryString();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | TOKEN TYPES
+    |--------------------------------------------------------------------------
+    */
+
+    $tokenTypes = TokenType::orderBy('name')->get();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | VIEW
+    |--------------------------------------------------------------------------
+    */
+
+    return view('dashboard.view', [
+
+        // Navegación
+        'tab' => $tab,
+
+        // Tokens
+        'data' => $data,
+        'total' => $total,
+        'status' => $status,
+        'email' => $email,
+        'name' => $name,
+        'createdFrom' => $createdFrom,
+        'expiresFrom' => $expiresFrom,
+
+        // Usuarios
+        'users' => $users,
+        'userSearch' => $userSearch,
+
+        // Tipos de token
+        'tokenTypes' => $tokenTypes,
+    ]);
+}
 
     public function revokeToken($id){
         $token = DB::table('oauth_access_tokens')
@@ -176,6 +292,57 @@ class DashboardController extends Controller
             'tokenType' => $tokenType,
             'expiresIn' => $data['expires_in'],
             'expiresAt' => $expiresAt,
+        ]);
+    }
+
+    public function createUser(){
+        return view('users.create');
+    }
+
+    public function storeUser(Request $request) {
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+        ]);
+
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Str::random(64),
+        ]);
+
+        return redirect()
+            ->route('dashboard')
+            ->with('success', 'Usuario creado correctamente.');
+    }
+
+    public function showUser($id) {
+        $user = User::findOrFail($id);
+
+        $tokens = DB::table('oauth_access_tokens')
+            ->leftJoin(
+                'token_types',
+                'token_types.id',
+                '=',
+                'oauth_access_tokens.token_type_id'
+            )
+            ->where('oauth_access_tokens.user_id', $user->id)
+            ->select([
+                'oauth_access_tokens.id',
+                'oauth_access_tokens.name',
+                'token_types.name as token_type_name',
+                'oauth_access_tokens.expires_in',
+                'oauth_access_tokens.created_at',
+                'oauth_access_tokens.expires_at',
+                'oauth_access_tokens.revoked',
+            ])
+            ->orderBy('oauth_access_tokens.created_at', 'desc')
+            ->get();
+
+        return view('users.show', [
+            'user' => $user,
+            'tokens' => $tokens,
         ]);
     }
 }
