@@ -15,7 +15,7 @@ use Laravel\Passport\Contracts\OAuthenticatable;
 
 
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password','token_type_id','client_key','client_secret'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements OAuthenticatable
 {
@@ -39,5 +39,13 @@ class User extends Authenticatable implements OAuthenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function tokenType()
+    {
+        return $this->belongsTo(
+            TokenType::class,
+            'token_type_id'
+        );
     }
 }

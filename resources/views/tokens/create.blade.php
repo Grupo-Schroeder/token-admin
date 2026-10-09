@@ -140,68 +140,20 @@
                     Usuario <span class="required">*</span>
                 </label>
 
-                <select
-                    name="user_id"
-                    id="user_id"
-                    required
-                >
 
-                    <option value="">
-                        Seleccionar usuario
-                    </option>
+                <select name="user_id" required>
+                    <option value="">Seleccionar usuario</option>
 
-                    @foreach ($users as $user)
-
-                        <option
-                            value="{{ $user->id }}"
-                            @selected(old('user_id') == $user->id)
-                        >
-                            {{ $user->name }} - {{ $user->email }}
+                    @foreach($users as $user)
+                        <option value="{{ $user->id }}">
+                            {{ $user->name }}
+                            — {{ $user->email }}
+                            — {{ $user->tokenType?->name ?? 'Sin tipo' }}
                         </option>
-
                     @endforeach
-
                 </select>
 
                 @error('user_id')
-                    <div class="error">
-                        {{ $message }}
-                    </div>
-                @enderror
-
-            </div>
-
-
-            <div class="field">
-
-                <label for="token_type_id">
-                    Tipo de token <span class="required">*</span>
-                </label>
-
-                <select
-                    name="token_type_id"
-                    id="token_type_id"
-                    required
-                >
-
-                    <option value="">
-                        Seleccionar tipo
-                    </option>
-
-                    @foreach ($tokenTypes as $tokenType)
-
-                        <option
-                            value="{{ $tokenType->id }}"
-                            @selected(old('token_type_id') == $tokenType->id)
-                        >
-                            {{ $tokenType->name }}
-                        </option>
-
-                    @endforeach
-
-                </select>
-
-                @error('token_type_id')
                     <div class="error">
                         {{ $message }}
                     </div>
@@ -345,3 +297,4 @@
 </body>
 
 </html>
+

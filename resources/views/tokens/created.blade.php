@@ -102,10 +102,6 @@
                 {{ $user->name }} - {{ $user->email }}
             </p>
 
-            <p>
-                <strong>Tipo:</strong>
-                {{ $tokenType->name }}
-            </p>
         </div>
 
         <h2>Access Token</h2>
@@ -139,3 +135,4 @@
 
 </body>
 </html>
+

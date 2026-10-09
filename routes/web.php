@@ -1,9 +1,10 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\UserTestController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\TokenController;
+use App\Http\Controllers\UserController;
 
 Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle'])
     ->name('google.redirect');
@@ -13,29 +14,35 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleC
 
 
 Route::middleware('auth')->group(function () {
-    Route::get('/', [UserTestController::class, 'index']);
-    Route::get('/usr/create', [UserTestController::class, 'create']);
-    Route::get('/usr/{id}', [UserTestController::class, 'show']);
-
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
-    Route::post('/token/{id}/revoke', [DashboardController::class, 'revokeToken']);
+    Route::post('/token/{id}/revoke', [TokenController::class, 'revokeToken']);
 
-    Route::get('/tokens/create', [DashboardController::class, 'createToken'])
+    Route::get('/tokens/create', [TokenController::class, 'createToken'])
         ->name('tokens.create');
 
-    Route::post('/tokens', [DashboardController::class, 'storeToken'])
+    Route::post('/tokens', [TokenController::class, 'storeToken'])
         ->name('tokens.store');
 
-    Route::get('/users/create', [DashboardController::class, 'createUser'])
-    ->name('users.create');
+    Route::get('/tokens/{id}', [TokenController::class, 'show'])
+        ->name('tokens.show');
 
-    Route::post('/users', [DashboardController::class, 'storeUser'])
+    Route::get('/users/create', [UserController::class, 'createUser'])
+        ->name('users.create');
+
+    Route::post('/users', [UserController::class, 'storeUser'])
         ->name('users.store');
 
-    Route::get('/users/{id}', [DashboardController::class, 'showUser'])
-    ->name('users.show');
+    Route::get('/users/{id}', [UserController::class, 'showUser'])
+        ->name('users.show');
+
+    Route::get( '/tokens/{id}/edit', [TokenController::class, 'edit'])
+        ->name('tokens.edit');
+
+    Route::put( '/tokens/{id}', [TokenController::class, 'update'])
+        ->name('tokens.update');
+
 });
 
 

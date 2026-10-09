@@ -39,12 +39,12 @@
         label {
             display: block;
             margin-bottom: 7px;
-
             font-weight: bold;
             color: #333;
         }
 
-        input {
+        input,
+        select {
             width: 100%;
             padding: 11px 12px;
 
@@ -57,11 +57,19 @@
             font-size: 14px;
 
             box-sizing: border-box;
+
+            color: #333;
         }
 
-        input:focus {
+        input:focus,
+        select:focus {
             outline: none;
             border-color: #999;
+        }
+
+        select {
+            appearance: auto;
+            cursor: pointer;
         }
 
         .error {
@@ -131,7 +139,6 @@
 
             @csrf
 
-
             <div class="field">
 
                 <label for="name">
@@ -174,6 +181,40 @@
                 >
 
                 @error('email')
+                    <div class="error">
+                        {{ $message }}
+                    </div>
+                @enderror
+
+            </div>
+
+
+            <div class="field">
+
+                <label for="token_type_id">
+                    Tipo de token <span class="required">*</span>
+                </label>
+
+                <select
+                    name="token_type_id"
+                    id="token_type_id"
+                    required
+                >
+                    <option value="">
+                        Seleccionar tipo
+                    </option>
+
+                    @foreach($tokenTypes as $tokenType)
+                        <option
+                            value="{{ $tokenType->id }}"
+                            {{ old('token_type_id') == $tokenType->id ? 'selected' : '' }}
+                        >
+                            {{ $tokenType->name }}
+                        </option>
+                    @endforeach
+                </select>
+
+                @error('token_type_id')
                     <div class="error">
                         {{ $message }}
                     </div>

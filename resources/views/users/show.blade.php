@@ -156,130 +156,88 @@
 <body>
 
 <main>
-
     <!-- Usuario -->
-
     <div class="card">
-
         <h1>
             {{ $user->name }}
         </h1>
-
         <div class="email">
             {{ $user->email }}
         </div>
-
         <div class="info">
-
             <div class="info-item">
-
                 <span class="info-label">
                     Nombre
                 </span>
-
                 <span class="info-value">
                     {{ $user->name }}
                 </span>
-
             </div>
-
             <div class="info-item">
-
                 <span class="info-label">
                     Email
                 </span>
-
                 <span class="info-value">
                     {{ $user->email }}
                 </span>
-
             </div>
-
             <div class="info-item">
-
                 <span class="info-label">
                     Tokens
                 </span>
-
                 <span class="info-value">
                     {{ $tokens->count() }}
                 </span>
-
             </div>
-
         </div>
-
     </div>
-
 
     <!-- Tokens -->
 
     <div class="card">
-
         <h2>
             Tokens
         </h2>
-
         <br>
-
         <table>
-
             <thead>
-
                 <tr>
-
                     <th>
                         #
                     </th>
-
                     <th>
                         Nombre
                     </th>
-
                     <th>
                         Tipo
                     </th>
-
                     <th>
                         Duración
                     </th>
-
                     <th>
                         Creado
                     </th>
-
                     <th>
                         Vence
                     </th>
-
                     <th>
                         Estado
                     </th>
-
                 </tr>
-
             </thead>
-
             <tbody>
-
                 @forelse($tokens as $token)
-
                     <tr>
-
                         <td>
                             {{ $loop->iteration }}
                         </td>
-
                         <td>
                             {{ $token->name }}
                         </td>
-
                         <td>
                             {{ $token->token_type_name ?? 'Sin tipo' }}
                         </td>
-
                         <td>
-
                             @switch($token->expires_in)
 
                                 @case('15m')
@@ -320,76 +278,50 @@
 
                                 @default
                                     -
-
                             @endswitch
-
                         </td>
-
                         <td>
                             {{ \Carbon\Carbon::parse($token->created_at)->format('d/m/Y H:i') }}
                         </td>
-
                         <td>
                             {{ \Carbon\Carbon::parse($token->expires_at)->format('d/m/Y H:i') }}
                         </td>
-
                         <td>
-
                             @if($token->revoked)
-
                                 <span class="status revoked">
                                     Revocado
                                 </span>
-
                             @elseif(\Carbon\Carbon::parse($token->expires_at)->isPast())
-
                                 <span class="status expired">
                                     Expirado
                                 </span>
-
                             @else
-
                                 <span class="status active">
                                     Activo
                                 </span>
-
                             @endif
-
                         </td>
-
                     </tr>
-
                 @empty
-
                     <tr>
-
                         <td
                             colspan="7"
                             class="empty"
                         >
                             Este usuario todavía no tiene tokens.
                         </td>
-
                     </tr>
-
                 @endforelse
-
             </tbody>
-
         </table>
-
     </div>
-
-
     <a
         href="{{ route('dashboard', ['tab' => 'users']) }}"
         class="back"
     >
         Volver a usuarios
     </a>
-
 </main>
-
 </body>
-
 </html>
+
