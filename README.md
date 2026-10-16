@@ -1,58 +1,183 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Token Admin
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Servidor central de autorización basado en **Laravel 13 + Laravel Passport**, diseñado para registrar aplicaciones y administrar la emisión y el ciclo de vida de tokens OAuth 2.0.
 
-## About Laravel
+> **Estado:** desarrollo e integración. Antes de producción, revisar las tareas de seguridad de este documento.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Funcionalidades
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Dashboard web para administrar aplicaciones, usuarios, tokens y logs.
+- Alta y vinculación de clientes OAuth de Laravel Passport.
+- Emisión de access tokens mediante OAuth 2.0 `client_credentials` para comunicación entre servicios.
+- Desactivación de aplicaciones y regeneración de secretos de cliente.
+- Registro de aplicaciones, clientes OAuth, tokens y eventos instrumentados.
+- Endpoint de introspección propio para comprobar si un token está activo; debe restringirse a clientes autorizados antes de producción.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Arquitectura
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```text
+                   ┌──────────────────────────┐
+                   │ Dashboard Token Admin    │
+                   │ Aplicaciones y tokens    │
+                   └────────────┬─────────────┘
+                                │
+                                ▼
+┌──────────────────────┐ OAuth 2.0 / Passport ┌──────────────────────┐
+│ Servicio consumidor  │ ─ POST /oauth/token ►│ Token Admin          │
+│ (cualquier tecnología)│ ◄── access_token ───│ Emisión y gestión    │
+└──────────┬───────────┘                       └──────────────────────┘
+           │
+           └──── Bearer token ───► API protegida del sistema consumidor
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Token Admin centraliza la gestión de clientes y tokens. Cada sistema integrado sigue siendo responsable de proteger sus propios endpoints y aplicar permisos de negocio: un token válido no concede automáticamente acceso irrestricto.
 
-## Contributing
+## Componentes y rutas principales
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- `POST /oauth/token`: endpoint de Laravel Passport para emitir tokens.
+- `POST /api/oauth/introspect`: endpoint propio de introspección en desarrollo; protegerlo antes de producción.
+- `oauth_clients`: clientes OAuth administrados por Passport.
+- `oauth_access_tokens`: tokens emitidos, expiración, scopes y estado de revocación.
+- `applications`: registro funcional de aplicaciones administradas.
+- `api_logs`: eventos que actualmente se registran mediante la instrumentación existente.
 
-## Code of Conduct
+El dashboard incluye pestañas de Tokens, Usuarios, Aplicaciones y Logs.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Flujo OAuth `client_credentials`
 
-## Security Vulnerabilities
+Este flujo es para comunicación máquina a máquina; no representa el inicio de sesión de un usuario final.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+1. Crear o registrar una aplicación desde el dashboard.
+2. Crear o vincular su cliente OAuth y obtener `client_id` y `client_secret`.
+3. El servicio consumidor solicita un token a Token Admin.
+4. Passport devuelve un `access_token`.
+5. El consumidor envía el token a su API mediante `Authorization: Bearer <access_token>`.
+6. La API consumidora valida el token según la integración implementada y aplica sus propios permisos.
 
-## License
+### Solicitar un token
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Reemplazar las credenciales de ejemplo por las de un cliente propio:
+
+```bash
+curl -X POST http://localhost:8000/oauth/token \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "grant_type=client_credentials" \
+  --data-urlencode "client_id=TU_CLIENT_ID" \
+  --data-urlencode "client_secret=TU_CLIENT_SECRET"
+```
+
+La respuesta contiene `access_token`, `token_type` y `expires_in`. La duración efectiva depende de la configuración de Passport.
+
+## Requisitos
+
+- Docker Engine y Docker Compose v2 (`docker compose`).
+- El código fuente de Laravel 13 en el directorio del proyecto.
+- Laravel Passport incluido en `composer.json` y configurado.
+- Un archivo `.env` local configurado antes del primer arranque.
+
+No hace falta instalar PHP, Composer ni PostgreSQL directamente en el host: se ejecutan en contenedores.
+
+## Instalación y ejecución con Docker
+
+1. Copiar `.env.example` a `.env` si todavía no existe:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Ajustar como mínimo las variables de aplicación y PostgreSQL. Con la configuración del `docker-compose.yml` incluido:
+
+   ```dotenv
+   APP_NAME="Token Admin"
+   APP_ENV=local
+   APP_DEBUG=true
+   APP_URL=http://localhost:8000
+   APP_KEY=
+
+   DB_CONNECTION=pgsql
+   DB_HOST=db
+   DB_PORT=5432
+   DB_DATABASE=token_admin
+   DB_USERNAME=token_admin
+   DB_PASSWORD=cambiar_esta_clave
+   ```
+
+   Usar la misma contraseña en `DB_PASSWORD` y `POSTGRES_PASSWORD` del `docker-compose.yml` o definir ambos valores en un archivo `.env` de Compose. No utilizar contraseñas de ejemplo en producción.
+
+3. Construir e iniciar los servicios:
+
+   ```bash
+   docker compose up -d --build
+   ```
+
+4. Generar `APP_KEY` si está vacío:
+
+   ```bash
+   docker compose exec app php artisan key:generate
+   ```
+
+5. Aplicar migraciones:
+
+   ```bash
+   docker compose exec app php artisan migrate --force
+   ```
+
+6. Si las claves de Passport no existen, generarlas:
+
+   ```bash
+   docker compose exec app php artisan passport:keys
+   ```
+
+7. Consultar el estado y los logs:
+
+   ```bash
+   docker compose ps
+   docker compose logs -f app
+   docker compose logs -f db
+   ```
+
+Abrir el dashboard en [http://localhost:8000](http://localhost:8000).
+
+> **Importante sobre la migración desde SQLite:** cambiar `DB_CONNECTION` a `pgsql` no copia los datos existentes. Hacer una copia de seguridad y planificar la transferencia de usuarios, aplicaciones, clientes y tokens antes de abandonar la base SQLite. No ejecutar `migrate:fresh` sobre una base con datos que se quieran conservar.
+
+## Base de datos PostgreSQL
+
+El servicio `db` usa una imagen oficial de PostgreSQL y un volumen Docker persistente llamado `postgres_data`. Los datos sobreviven al recrear el contenedor. `docker compose down -v` elimina también el volumen y, por lo tanto, los datos de la base: no usarlo salvo que se quiera borrar todo.
+
+El contenedor Laravel se conecta a PostgreSQL por el nombre de servicio `db`, no por `localhost`.
+
+## Comandos útiles
+
+```bash
+# Ver contenedores
+docker compose ps
+
+# Seguir logs de Laravel
+docker compose logs -f app
+
+# Ejecutar comandos Artisan
+docker compose exec app php artisan route:list --path=oauth
+
+docker compose exec app php artisan migrate:status
+
+# Detener contenedores sin borrar los datos
+docker compose down
+```
+
+## Seguridad antes de producción
+
+- Configurar `APP_DEBUG=false`, una `APP_KEY` fuerte y HTTPS.
+- No publicar PostgreSQL directamente en internet; el Compose propuesto no publica el puerto `5432` en el host.
+- Cambiar contraseñas de ejemplo y no versionar `.env`, secretos ni tokens.
+- Proteger `POST /api/oauth/introspect` para que solo clientes autorizados puedan invocarlo.
+- Definir scopes, permisos y reglas de autorización por aplicación.
+- Probar tokens válidos, expirados, revocados y clientes desactivados.
+- No guardar secretos ni tokens completos en logs.
+- Preparar backups y probar su restauración.
+- Añadir servidor web/HTTPS, monitorización, límites de solicitudes y pruebas de seguridad antes del despliegue productivo. `php artisan serve` se usa aquí para desarrollo, no como servidor de producción.
+
+## Licencia
+
+Agregar la licencia elegida para el proyecto.
+

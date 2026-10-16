@@ -1,11 +1,7 @@
 <?php
 
-
-
 use App\Http\Controllers\ApiController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\UserTestController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\OAuthIntrospectionController;
 use Illuminate\Support\Facades\Route;
 
 // Route::post('/login', [::class, 'login']);
@@ -16,3 +12,5 @@ Route::get('/test-protected', function () {
 })->middleware('auth:api');
 
 Route::post('/login', [ApiController::class, 'login']);
+
+Route::post('/oauth/introspect', OAuthIntrospectionController::class);

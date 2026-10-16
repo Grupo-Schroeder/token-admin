@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-
 use App\Models\TokenType;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -12,8 +11,8 @@ use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
-
-    public function createUser(){
+    public function createUser()
+    {
         $tokenTypes = TokenType::orderBy('name')->get();
 
         return view('users.create', [
@@ -21,7 +20,8 @@ class UserController extends Controller
         ]);
     }
 
-    public function storeUser(Request $request) {
+    public function storeUser(Request $request)
+    {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
@@ -38,7 +38,7 @@ class UserController extends Controller
             'password' => Str::random(64),
             'client_key' => $clientKey,
             'client_secret' => Hash::make($clientSecret),
-
+            z,
         ]);
 
         return view('users.created', [
@@ -49,7 +49,8 @@ class UserController extends Controller
 
     }
 
-    public function showUser($id) {
+    public function showUser($id)
+    {
         $user = User::findOrFail($id);
 
         $tokens = DB::table('oauth_access_tokens')

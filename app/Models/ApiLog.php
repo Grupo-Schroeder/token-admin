@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Passport\Token;
 
-class ApiLog extends Model {
-     protected $fillable = [
+class ApiLog extends Model
+{
+    protected $fillable = [
         'token_id',
         'user_id',
         'method',
@@ -25,7 +27,7 @@ class ApiLog extends Model {
     public function token()
     {
         return $this->belongsTo(
-            \App\Models\PassportToken::class,
+            Token::class,
             'token_id'
         );
 

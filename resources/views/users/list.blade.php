@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Usuarios</title>
+    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+    <title>Token Admin | Leben Salud</title>
 </head>
 <body>
     <h1>Lista de usuarios</h1>
