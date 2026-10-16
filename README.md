@@ -177,7 +177,3 @@ docker compose down
 - Preparar backups y probar su restauración.
 - Añadir servidor web/HTTPS, monitorización, límites de solicitudes y pruebas de seguridad antes del despliegue productivo. `php artisan serve` se usa aquí para desarrollo, no como servidor de producción.
 
-## Licencia
-
-Agregar la licencia elegida para el proyecto.
-
