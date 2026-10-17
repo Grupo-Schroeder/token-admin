@@ -318,7 +318,12 @@
 
             border-bottom: 1px solid #e5e7eb;
             overflow-x: auto;
-            scrollbar-width: thin;
+            overflow-y: hidden;
+            scrollbar-width: none;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
         }
 
         .tab {
