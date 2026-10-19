@@ -1,3 +1,21 @@
+
+# ==========================================
+# Etapa 1: compilar Vite
+# ==========================================
+FROM node:22-bookworm-slim AS frontend
+
+WORKDIR /app
+
+COPY package.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+
+# ==========================================
+# Etapa 2: Laravel + FrankenPHP
+# ==========================================
 FROM dunglas/frankenphp:1-php8.4-bookworm
 
 RUN install-php-extensions \
@@ -19,9 +37,14 @@ RUN composer install \
     --no-interaction \
     --prefer-dist \
     --no-scripts \
-    --no-progress
+    --no-progress \
+    --no-dev \
+    --optimize-autoloader
 
 COPY . .
+
+# Copiar los assets compilados
+COPY --from=frontend /app/public/build ./public/build
 
 RUN mkdir -p \
     storage/framework/cache \
@@ -34,4 +57,3 @@ RUN mkdir -p \
 COPY Docker/php/Caddyfile /etc/frankenphp/Caddyfile
 
 EXPOSE 80
-
