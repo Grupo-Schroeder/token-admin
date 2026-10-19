@@ -44,7 +44,8 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 
 # Dependencias PHP
-COPY composer.json composer.lock ./
+COPY package.json ./
+RUN npm install
 
 RUN composer install \
     --no-dev \
