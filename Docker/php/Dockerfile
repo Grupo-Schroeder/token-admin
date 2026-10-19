@@ -1,6 +1,24 @@
-FROM dunglas/frankenphp:1-php8.4-bookworm
 
-# Dependencias del sistema y compilación de extensiones PHP
+# ==========================================
+# Etapa 1: compilar frontend con Vite
+# ==========================================
+FROM node:22-bookworm-slim AS frontend
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+
+# ==========================================
+# Etapa 2: aplicación Laravel + FrankenPHP
+# ==========================================
+FROM dunglas/frankenphp:1-php8.4-bookworm AS production
+
+# Dependencias del sistema y extensiones PHP
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         $PHPIZE_DEPS \
@@ -25,17 +43,22 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
-# Dependencias del proyecto
+# Dependencias PHP
 COPY composer.json composer.lock ./
 
 RUN composer install \
+    --no-dev \
     --no-interaction \
     --prefer-dist \
     --no-scripts \
-    --no-progress
+    --no-progress \
+    --optimize-autoloader
 
-# Código Laravel
+# Código de Laravel
 COPY . .
+
+# Assets compilados de Vite
+COPY --from=frontend /app/public/build ./public/build
 
 # Directorios necesarios para Laravel
 RUN mkdir -p \
