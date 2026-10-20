@@ -20,6 +20,14 @@ class ApiLog extends Model
         'response_time_ms',
     ];
 
+    protected $casts = [
+        'token_id' => 'string',
+        'user_id' => 'integer',
+        'application_id' => 'string',
+        'status_code' => 'integer',
+        'response_time_ms' => 'integer',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

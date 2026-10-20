@@ -72,7 +72,7 @@ class OAuthIntrospectionController extends Controller
         }
 
         ApiLog::create([
-            'token_id' => $accessToken->id,
+            'token_id' => (string) $accessToken->id,
             'user_id' => $accessToken->user_id,
             'application_id' => Application::where('oauth_client_id', $accessToken->client_id)->value('id'),
             'method' => $request->method(),
