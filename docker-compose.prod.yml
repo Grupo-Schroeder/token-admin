@@ -35,6 +35,9 @@ services:
       CACHE_STORE: "${CACHE_STORE:-database}"
       QUEUE_CONNECTION: "${QUEUE_CONNECTION:-database}"
       FILESYSTEM_DISK: "${FILESYSTEM_DISK:-local}"
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
+      GOOGLE_REDIRECT_URI: "${GOOGLE_REDIRECT_URI}"
 
     volumes:
       - app_storage:/app/storage
