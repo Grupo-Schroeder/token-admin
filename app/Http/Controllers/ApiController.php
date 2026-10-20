@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ApiLog;
+use App\Models\Application;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -9,13 +11,12 @@ use Illuminate\Support\Facades\Hash;
 
 class ApiController extends Controller
 {
-
     public function login(Request $request)
     {
 
         if (
-            !$request->filled('client_key') ||
-                !$request->filled('client_secret')
+            ! $request->filled('client_key') ||
+                ! $request->filled('client_secret')
         ) {
             return response()->json([
                 'message' => 'Credenciales inválidas.',
@@ -28,9 +29,9 @@ class ApiController extends Controller
         )->first();
 
         if (
-            !$user ||
-                !$user->client_secret ||
-                !Hash::check(
+            ! $user ||
+                ! $user->client_secret ||
+                ! Hash::check(
                     $request->input('client_secret'),
                     $user->client_secret
                 )
@@ -52,6 +53,19 @@ class ApiController extends Controller
                 'expires_at' => $expiresAt,
             ]);
 
+        ApiLog::create([
+            'token_id' => $tokenResult->token->id,
+            'user_id' => $user->id,
+            'application_id' => Application::where('oauth_client_id', $user->client_key)->value('id'),
+            'method' => $request->method(),
+            'url' => $request->fullUrl(),
+            'route' => $request->path(),
+            'status_code' => 200,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'response_time_ms' => 0,
+        ]);
+
         return response()->json([
             'access_token' => $tokenResult->accessToken,
             'expires_in' => (string) max(
@@ -63,4 +77,3 @@ class ApiController extends Controller
         ]);
     }
 }
-

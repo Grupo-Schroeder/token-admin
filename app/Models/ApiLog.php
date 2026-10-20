@@ -10,6 +10,7 @@ class ApiLog extends Model
     protected $fillable = [
         'token_id',
         'user_id',
+        'application_id',
         'method',
         'url',
         'route',
@@ -26,10 +27,6 @@ class ApiLog extends Model
 
     public function token()
     {
-        return $this->belongsTo(
-            Token::class,
-            'token_id'
-        );
-
+        return $this->belongsTo(Token::class, 'token_id');
     }
 }

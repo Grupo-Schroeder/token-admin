@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ApiLog;
+use App\Models\Application;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -69,9 +71,10 @@ class OAuthIntrospectionController extends Controller
             return response()->json(['active' => false]);
         }
 
-        DB::table('api_logs')->insert([
+        ApiLog::create([
             'token_id' => $accessToken->id,
             'user_id' => $accessToken->user_id,
+            'application_id' => Application::where('oauth_client_id', $accessToken->client_id)->value('id'),
             'method' => $request->method(),
             'url' => $request->fullUrl(),
             'route' => $request->path(),
@@ -79,17 +82,13 @@ class OAuthIntrospectionController extends Controller
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
             'response_time_ms' => 0,
-            'created_at' => now(),
-            'updated_at' => now(),
         ]);
 
         return response()->json([
             'active' => true,
             'client_id' => $accessToken->client_id,
             'sub' => $accessToken->user_id,
-            'exp' => Carbon::parse(
-                $accessToken->expires_at
-            )->timestamp,
+            'exp' => Carbon::parse($accessToken->expires_at)->timestamp,
             'scopes' => json_decode($accessToken->scopes ?: '[]', true) ?: [],
         ]);
     }
