@@ -56,7 +56,7 @@ class ApiController extends Controller
         ApiLog::create([
             'token_id' => (string) $tokenResult->token->id,
             'user_id' => $user->id,
-            'application_id' => Application::where('oauth_client_id', $user->client_key)->value('id'),
+            'application_id' => Application::where('oauth_client_id', $user->client_key)->value('id') ? 1 : null,
             'method' => $request->method(),
             'url' => $request->fullUrl(),
             'route' => $request->path(),

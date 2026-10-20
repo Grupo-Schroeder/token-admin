@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('api_logs', function (Blueprint $table) {
-            $table->uuid('application_id')->nullable()->after('user_id');
+            $table->bigInteger('application_id')->nullable()->after('user_id');
             $table->index('application_id');
         });
     }
