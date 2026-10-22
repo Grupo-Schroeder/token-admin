@@ -16,7 +16,7 @@ RUN npm run build
 # ==========================================
 # Etapa 2: Laravel + FrankenPHP
 # ==========================================
-FROM dunglas/frankenphp:1-php8.4-bookworm
+FROM dunglas/frankenphp:1.13.2-php8-alpine
 
 RUN install-php-extensions \
     pdo_pgsql \
