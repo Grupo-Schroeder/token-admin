@@ -3,7 +3,7 @@ name: token-admin
 
 services:
   app:
-    image: ghcr.io/Grupo-Schroeder/token-admin:${IMAGE_TAG:-latest}
+    image: ghcr.io/grupo-schroeder/token-admin:${IMAGE_TAG:-latest}
     container_name: token-admin-app
     restart: unless-stopped
     working_dir: /app
