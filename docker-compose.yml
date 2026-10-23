@@ -11,6 +11,7 @@ services:
       - .:/app
       - vendor:/app/vendor
       - app_storage:/app/storage
+      - public_build:/app/public/build
     environment:
       APP_NAME: "Token Admin"
       APP_ENV: "${APP_ENV:-local}"
@@ -63,4 +64,5 @@ volumes:
   vendor:
   postgres_data:
   app_storage:
+  public_build:
 
